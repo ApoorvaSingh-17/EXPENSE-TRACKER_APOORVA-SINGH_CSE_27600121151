@@ -1,5 +1,5 @@
 import express from "express";
-import { addTransactions, getAllTransaction, editTransaction, deleteTransaction } from "../controllers/transactionController.js";
+import { addTransactions, getAllTransaction, editTransaction, deleteTransaction, calculateMonthlySavings } from "../controllers/transactionController.js";
 
 
 //router object
@@ -17,5 +17,8 @@ router.post('/delete-transaction', deleteTransaction)
 
 //get Transactions
 router.post('/get-transaction', getAllTransaction)
+
+//get Monthly savings
+router.post('/getMonthlySavings-transaction', calculateMonthlySavings)
 
 export default router;

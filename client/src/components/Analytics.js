@@ -1,8 +1,36 @@
 import React from 'react';
 import { Progress } from 'antd';
+import { useState, useEffect } from 'react';
+import { message } from 'antd';
+import axios from 'axios';
 
 
 const Analytics = ({ allTransaction }) => {
+
+    const [monthlySavings, setMonthlySavings] = useState(0);
+    const [monthlyIncome, setMonthlyIncome] = useState(0);
+  const [monthlyExpense, setMonthlyExpense] = useState(0);
+
+  // Fetch Monthly Savings
+  const fetchMonthlySavings = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const res = await axios.post('/transactions/getMonthlySavings-transaction', {
+        userid: user._id,
+      });
+      setMonthlySavings(res.data.monthlySavings);
+      setMonthlyIncome(res.data.totalIncome);
+      setMonthlyExpense(res.data.totalExpenses);
+    } catch (error) {
+      console.error(error);
+      message.error('Failed to fetch monthly savings');
+    }
+  };
+
+  useEffect(() => {
+    fetchMonthlySavings();
+  }, []);
+
 
    //category
    const categories = [
@@ -23,6 +51,8 @@ const Analytics = ({ allTransaction }) => {
 
 
 
+
+
     //total transaction
     const totalTransaction = allTransaction.length;
     const totalIncomeTransaction = allTransaction.filter(transaction => transaction.type === 'income')
@@ -39,10 +69,13 @@ const Analytics = ({ allTransaction }) => {
     return (
     <>
       <div className='row m-3' >
+
+      
+
         <div className='col-md-4'>
             <div className='card'>
                 <div className='card-header'>
-                 Total Transactions : {totalTransaction}   
+                 TOTAL TRANSACTIONS : {totalTransaction}   
                 </div>
                 <div className='card-body'>
                     <h5 className='text-success'>Income : {totalIncomeTransaction.length}</h5>
@@ -62,11 +95,11 @@ const Analytics = ({ allTransaction }) => {
         <div className='col-md-4'>
             <div className='card'>
                 <div className='card-header'>
-                 Total Turnover : {totalTurnover}   
+                 TOTAL TURNOVER :  ₹ {totalTurnover}   
                 </div>
                 <div className='card-body'>
-                    <h5 className='text-success'>Income : {totalIncomeTurnover}</h5>
-                    <h5 className='text-danger'>Expense : {totalExpenseTurnover} </h5>
+                    <h5 className='text-success'>Income : ₹ {totalIncomeTurnover}</h5>
+                    <h5 className='text-danger'>Expense : ₹ {totalExpenseTurnover} </h5>
                 </div>
                 <div className='display'>
                 <Progress  type= 'circle' strokeColor={'#4caf50'} className='mx-2'
@@ -79,7 +112,28 @@ const Analytics = ({ allTransaction }) => {
                 </div>
             </div>
         </div>
-      </div>
+
+        <div className="col-md-4">
+          <div className="card">
+            <div>
+              <h5 className='card-header'>MONTHLY SAVINGS</h5>
+            </div>
+            <div className="card-body">
+            <h6>Total Income: ₹ {monthlyIncome}</h6>
+              <h6>Total Expense: ₹ {monthlyExpense}</h6>
+              <h3 className={monthlySavings >= 0 ? 'text-success' : 'text-danger'}>
+              SAVINGS: ₹ {monthlySavings}
+              </h3>
+              <p>
+                {monthlySavings >= 0
+                  ? 'You are saving well this month!'
+                  : 'You are overspending this month!'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+    </div>
       <div className='row mt-3'>
         <div className='col-md-6'>
             <h4>CategoryWise Income</h4> 

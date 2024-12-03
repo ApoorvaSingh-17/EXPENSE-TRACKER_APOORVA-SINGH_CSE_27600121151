@@ -4,6 +4,7 @@ import moment from "moment";
 const getAllTransaction = async (req, res) => {
   try{
     const { frequency, selectedDate, type } = req.body;
+    //Fetch transaction based on frequency
   const transaction = await transactions.find({
     ...(frequency !== 'custom' ? {
       date:{
@@ -25,6 +26,35 @@ const getAllTransaction = async (req, res) => {
 
   }
 }
+
+const calculateMonthlySavings = async (req, res) => {
+  try {
+    const { userid } = req.body;
+
+    // Get the start and end dates for the current month
+    const startOfMonth = moment().startOf("month").toDate();
+    const endOfMonth = moment().endOf("month").toDate();
+
+    // Fetch transactions for the current month
+    const monthlyTransactions = await transactions.find({
+      userid,
+      date: { $gte: startOfMonth, $lte: endOfMonth },
+    });
+
+    // Calculate total income and expenses
+    const totalIncome = monthlyTransactions.filter((txn) => txn.type === "income").reduce((sum, txn) => sum + txn.amount, 0);
+
+    const totalExpenses = monthlyTransactions.filter((txn) => txn.type === "expense").reduce((sum, txn) => sum + txn.amount, 0);
+
+    
+    const monthlySavings = totalIncome - totalExpenses;
+
+    res.status(200).json({ success: true, monthlySavings,totalIncome,totalExpenses });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 
 const editTransaction = async (req,res) => {
   try{
@@ -61,4 +91,4 @@ const addTransactions = async (req, res) => {
   }
 }
 
-export { getAllTransaction, addTransactions, editTransaction, deleteTransaction }
+export { getAllTransaction, calculateMonthlySavings ,addTransactions, editTransaction, deleteTransaction }

@@ -18,6 +18,7 @@ const HomePage = () => {
   const[viewData, setViewData] = useState('table');
   const [edit, setEdit] = useState(null);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   //table data
   const columns = [
@@ -28,7 +29,8 @@ const HomePage = () => {
     },
     {
       title:'Amount',
-      dataIndex:'amount'
+      dataIndex:'amount',
+      render: (text) => <span> ₹ {(text)}</span>
     },
     {
       title:'Type',
@@ -61,6 +63,7 @@ const HomePage = () => {
     
   ]
 
+
   //useEffect hook
   useEffect(() => {
     //get all transaction
@@ -76,7 +79,8 @@ const HomePage = () => {
       });
        setLoading(false)
        setAllTransaction(res.data)
-       setFilteredTransactions(res.data);
+       setFilteredTransactions(res.data); //set initial data for filtered view
+       
        console.log(res.data)
     } catch(error) {
       console.log(error);
@@ -86,29 +90,27 @@ const HomePage = () => {
     getAllTransaction();
   }, [frequency, selectedDate, type]);
 
+  
   //searching
-  const handleSearch = (query) => {
-    if (!allTransaction || allTransaction.length === 0) {
-      message.warning("No transactions available to search.");
-      return;
-    }
-
-    const filtered = query
-      ? allTransaction.filter((txn) =>
-          txn.category.toLowerCase().includes(query.toLowerCase())
-        )
-      : allTransaction;
-
+  useEffect(() => {
+    if(searchQuery.trim() === '') {
+      setFilteredTransactions(allTransaction);
+    } else {
+      const filtered = allTransaction.filter((txn) => 
+      txn.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
     setFilteredTransactions(filtered);
-    console.log("Filtered Transactions:", filtered); 
-  };
+    }
+  }, [searchQuery, allTransaction]);
 
   //delete handler
   const handleDelete = async (record) => {
     try {
       setLoading(true)
       await axios.post("/transactions/delete-transaction", {transactionId:record._id})
-      setAllTransaction(allTransaction.filter((txn) => txn._id !== record._id));
+      const updatedTransactions = allTransaction.filter((txn) => txn._id !== record._id)
+      setAllTransaction(updatedTransactions);
+      setFilteredTransactions(updatedTransactions);  //for syncing filtered view
       setLoading(false)
       message.success("Transaction Deleted Successfully !!")
     }catch(error) {
@@ -116,7 +118,7 @@ const HomePage = () => {
       console.log(error)
       message.error('Unable to delete')
     }
-  }
+  };
 
 
   //form handling
@@ -132,7 +134,9 @@ const HomePage = () => {
           },
           transactionId : edit._id,
         });
-        setAllTransaction(allTransaction.map((txn) => (txn._id === edit._id ? res.data : txn)));
+        const updatedTransactions = allTransaction.map((txn) => (txn._id === edit._id ? res.data : txn));
+        setAllTransaction(updatedTransactions);
+        setFilteredTransactions(updatedTransactions);
         setLoading(false);
         message.success("Transaction Updated Successfully!!");
        }else {
@@ -141,6 +145,7 @@ const HomePage = () => {
           userid: user._id,
          });
          setAllTransaction([...allTransaction, res.data]);
+         setFilteredTransactions([...allTransaction, res.data])
          setLoading(false);
        message.success("Transaction Added Successfully!!");
        }
@@ -151,8 +156,14 @@ const HomePage = () => {
       message.error("Failed to add Transaction");
     }
   }
+
+  
+
   return (
-    <Layout onSearch={handleSearch} >
+    
+    <Layout
+      onSearch={(value) => setSearchQuery(value)} // Update search query on input change
+    >
     {loading && <Spinner />}
       <div className='filters'>
      <div>
@@ -199,7 +210,7 @@ const HomePage = () => {
          onClick={() => setShowModal(true)}> ADD NEW</button>
       </div>
       </div>
-      
+
       <div className='content'>
       {viewData ==='table' ? 
         (<Table columns={columns} dataSource={filteredTransactions}/>)

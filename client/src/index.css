@@ -685,3 +685,45 @@ body, html {
 
 
 
+.card {
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.card-header {
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.card-body h6{
+  color: #26a69a;
+  font-weight: 550;
+}
+
+.card-body h3{
+  padding: 20px 0px;
+}
+
+.text-success {
+  color: #4caf50 !important;
+}
+
+.text-danger {
+  color: #ff6f61 !important;
+}
+
+
+.card-category h5 {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.progress {
+  width: 70%;
+}
+
+
+
+
